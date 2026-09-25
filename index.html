@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BLU-CO FIELD SYSTEM — AUDIO, NOTES & WORLD WORDS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg-main: #0a0d14;
+    --card-bg: #121824;
+    --card-border: #1e293b;
+    --text-main: #f1f5f9;
+    --text-dim: #94a3b8;
+    --accent: #00f2ff;
+    --accent-glow: rgba(0, 242, 255, 0.25);
+    --gold: #f59e0b;
+    --danger: #ef4444;
+    --good: #10b981;
+    --input-bg: #0b0f19;
+  }
+
+  [data-theme="light"] {
+    --bg-main: #f8fafc;
+    --card-bg: #ffffff;
+    --card-border: #e2e8f0;
+    --text-main: #0f172a;
+    --text-dim: #64748b;
+    --accent: #0284c7;
+    --accent-glow: rgba(2, 132, 199, 0.15);
+    --input-bg: #f1f5f9;
+  }
+
+  [data-theme="cyber"] {
+    --bg-main: #05050a;
+    --card-bg: #0d0d1a;
+    --card-border: #2a085c;
+    --text-main: #00ffcc;
+    --text-dim: #8a73d6;
+    --accent: #ff007f;
+    --accent-glow: rgba(255, 0, 127, 0.3);
+    --input-bg: #140826;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+  body { background: var(--bg-main); color: var(--text-main); min-height: 100vh; padding-bottom: 60px; }
+
+  header.header {
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--card-border);
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .header-title { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700; color: var(--accent); letter-spacing: 1px; }
+  .header-sub { font-size: 11px; color: var(--text-dim); font-family: 'Fira Code', monospace; }
+
+  .themeRow { display: flex; gap: 8px; padding: 12px 24px; background: rgba(0,0,0,0.2); }
+  .themeBtn { padding: 4px 12px; font-size: 10px; border-radius: 4px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-dim); cursor: pointer; }
+  .themeBtn.active { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+  nav.tabBar { display: flex; gap: 4px; padding: 0 24px; background: var(--card-bg); border-bottom: 1px solid var(--card-border); }
+  .tabBtn {
+    padding: 12px 18px; font-size: 12px; font-weight: 600; font-family: 'Fira Code', monospace;
+    background: none; border: none; color: var(--text-dim); cursor: pointer; border-bottom: 2px solid transparent;
+  }
+  .tabBtn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tabBtn.visible { display: block !important; }
+
+  main.container { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .card {
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px;
+    padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  input[type="text"], input[type="password"], textarea, select {
+    width: 100%; padding: 10px 14px; background: var(--input-bg); border: 1px solid var(--card-border);
+    border-radius: 6px; color: var(--text-main); font-size: 13px; font-family: 'Fira Code', monospace; outline: none;
+  }
+  input:focus, textarea:focus { border-color: var(--accent); }
+
+  button {
+    padding: 8px 16px; font-size: 12px; font-weight: 600; font-family: 'Fira Code', monospace;
+    border-radius: 6px; border: none; background: var(--accent); color: #000; cursor: pointer;
+  }
+  button.ghost { background: transparent; border: 1px solid var(--card-border); color: var(--text-main); }
+  button.danger { background: var(--danger); color: #fff; }
+  button.gold { background: var(--gold); color: #000; }
+
+  /* Audio & Visualizer Layout */
+  .audioGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width: 768px) { .audioGrid { grid-template-columns: 1fr; } }
+
+  #audioCanvas { width: 100%; height: 120px; background: #000; border-radius: 6px; margin-bottom: 12px; }
+  
+  .embedViewer {
+    width: 100%; height: 200px; background: #000; border-radius: 6px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center; border: 1px solid var(--card-border);
+  }
+  .embedViewer iframe { width: 100%; height: 100%; border: none; }
+
+  .playlistWrap { max-height: 220px; overflow-y: auto; margin-top: 12px; }
+  .trackItem {
+    display: flex; justify-content: space-between; align-items: center; padding: 8px 12px;
+    background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 4px; margin-bottom: 6px;
+    font-size: 12px; font-family: 'Fira Code', monospace; cursor: pointer;
+  }
+  .trackItem.active-track { border-color: var(--accent); color: var(--accent); }
+
+  /* Notes */
+  .noteItem {
+    background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 6px;
+    padding: 12px; margin-bottom: 8px; cursor: pointer; display: flex; gap: 12px; align-items: center;
+  }
+  .noteTitle { font-weight: 600; color: var(--text-main); font-size: 14px; }
+  .notePreview { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+
+  /* Words / Search Panel */
+  .words-search-bar { display: flex; gap: 8px; margin-bottom: 12px; }
+  .sectionLabel { font-family: 'Orbitron', sans-serif; font-size: 12px; color: var(--accent); margin-bottom: 8px; letter-spacing: 0.5px; }
+
+  /* Toast & Modals */
+  .toast {
+    position: fixed; bottom: 20px; right: 20px; padding: 10px 18px; background: var(--accent); color: #000;
+    font-weight: 600; font-family: 'Fira Code', monospace; font-size: 12px; border-radius: 6px;
+    opacity: 0; transition: opacity 0.3s ease; pointer-events: none; z-index: 999;
+  }
+  .toast.show { opacity: 1; }
+
+  .modalOverlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8);
+    display: none; align-items: center; justify-content: center; z-index: 1000;
+  }
+  .modalOverlay.open { display: flex; }
+  .modal { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; width: 90%; max-width: 450px; padding: 24px; }
+</style>
+</head>
+
+<body data-theme="dark">
+
+<header class="header">
+  <div>
+    <div class="header-title">BLU-CO</div>
+    <div class="header-sub">FIELD AUDIO & WORLD WORDS ENGINE</div>
+  </div>
+</header>
+
+<div class="themeRow">
+  <button class="themeBtn active" id="btnThemeDark" onclick="setTheme('dark')">NIGHT</button>
+  <button class="themeBtn" id="btnThemeLight" onclick="setTheme('light')">DAY</button>
+  <button class="themeBtn" id="btnThemeCyber" onclick="setTheme('cyber')">CYBER</button>
+</div>
+
+<nav class="tabBar">
+  <button class="tabBtn active" id="tab-words" onclick="switchTab('words')">WORLD WORDS (SEARCH)</button>
+  <button class="tabBtn" id="tab-audio" onclick="switchTab('audio')">AUDIO & EMBEDS</button>
+  <button class="tabBtn" id="tab-notes" onclick="switchTab('notes')">FIELD NOTES</button>
+</nav>
+
+<main class="container">
+
+  <!-- ================= TAB 1: WORLD WORDS / SEARCH (DEFAULT START) ================= -->
+  <section class="panel active" id="panel-words">
+    <div class="card">
+      <div class="sectionLabel">GLOBAL SEARCH & WORD CONTEXTS</div>
+      <div class="words-search-bar">
+        <input type="text" id="wordSearchInput" placeholder="Enter word or concept (e.g. resonance, horizon, frequency)…" onkeydown="if(event.key==='Enter')executeWordSearch()"/>
+        <button onclick="executeWordSearch()">Search</button>
+      </div>
+      <div id="wordsStatusLine" style="font-size: 11px; color: var(--text-dim); font-family: 'Fira Code', monospace;">Ready for query execution.</div>
+    </div>
+
+    <div id="wordResultsContainer"></div>
+  </section>
+
+  <!-- ================= TAB 2: AUDIO & EMBEDED PLAYLIST ================= -->
+  <section class="panel" id="panel-audio">
+    
+    <div class="audioGrid">
+      
+      <!-- Native File Audio & Visualizer -->
+      <div class="card">
+        <div class="sectionLabel">NATIVE AUDIO & VISUALIZER</div>
+        <canvas id="audioCanvas"></canvas>
+        <input type="file" id="audioFileInput" accept="audio/*" onchange="handleAudioUpload(event)"/>
+        
+        <div style="margin-top: 12px; display: flex; gap: 8px;">
+          <button id="playBtn" onclick="togglePlay()">Play</button>
+          <button class="ghost" onclick="stopAudio()">Stop</button>
+          <button class="gold" onclick="addTimestampToNote()">+ Timestamp</button>
+        </div>
+      </div>
+
+      <!-- Embed Code Player & Playlist -->
+      <div class="card">
+        <div class="sectionLabel">ACTIVE EMBEDDED MEDIA PLAYER</div>
+        <div class="embedViewer" id="embedViewer">
+          <span style="font-size:11px; color:var(--text-dim); font-family:'Fira Code',monospace;">No embed active. Select or add one below.</span>
+        </div>
+
+        <div style="margin-top: 16px;">
+          <div class="sectionLabel">ADD EMBED CODE</div>
+          <input type="text" id="embedTitleInput" placeholder="Embed Title (e.g., SoundCloud Beat / YouTube Track)…" style="margin-bottom:8px;"/>
+          <textarea id="embedSnippetInput" placeholder="Paste <iframe> embed code here…" style="height: 60px; margin-bottom:8px;"></textarea>
+          <button onclick="saveEmbedToPlaylist()">+ Add to Embed Playlist</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Embed Playlist Storage -->
+    <div class="card" style="margin-top:16px;">
+      <div class="sectionLabel">EMBEDDED PLAYLIST QUEUE</div>
+      <div class="playlistWrap" id="embedPlaylistList">
+        <div style="font-size:11px; color:var(--text-dim); font-family:'Fira Code',monospace;">No embedded items saved in playlist.</div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ================= TAB 3: FIELD NOTES ================= -->
+  <section class="panel" id="panel-notes">
+    <div class="card">
+      <div class="sectionLabel">FIELD NOTE EDITOR</div>
+      <input type="text" id="noteTitleInput" placeholder="Note Title / Project Name…" style="margin-bottom:8px;"/>
+      <textarea id="noteBodyInput" style="height:120px; margin-bottom:8px;" placeholder="Type observations, lyrics, or logs here… Use '+ Timestamp' button in Audio tab to insert audio reference points."></textarea>
+      <button onclick="saveNote()">Save Note</button>
+    </div>
+
+    <div class="sectionLabel" style="margin-top:20px;">SAVED FIELD LOGS</div>
+    <div id="notesContainer"></div>
+  </section>
+
+</main>
+
+<div class="toast" id="toastMsg">MESSAGE</div>
+
+<script>
+/* -------------------------------------------------------------------
+   STATE & STORAGE
+-------------------------------------------------------------------- */
+const STORAGE_KEYS = {
+  NOTES: 'bluco_field_notes_v3',
+  EMBEDS: 'bluco_embed_playlist_v1'
+};
+
+let notesVault = JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTES) || '[]');
+let embedPlaylist = JSON.parse(localStorage.getItem(STORAGE_KEYS.EMBEDS) || '[]');
+
+window.addEventListener('DOMContentLoaded', () => {
+  renderNotes();
+  renderEmbedPlaylist();
+});
+
+function showToast(msg) {
+  const toast = document.getElementById('toastMsg');
+  toast.innerText = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+/* -------------------------------------------------------------------
+   THEMES & TAB ROUTING
+-------------------------------------------------------------------- */
+function setTheme(theme) {
+  document.body.setAttribute('data-theme', theme);
+  document.querySelectorAll('.themeBtn').forEach(b => b.classList.remove('active'));
+  if (theme === 'dark') document.getElementById('btnThemeDark').classList.add('active');
+  if (theme === 'light') document.getElementById('btnThemeLight').classList.add('active');
+  if (theme === 'cyber') document.getElementById('btnThemeCyber').classList.add('active');
+}
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tabBtn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  
+  document.getElementById(`tab-${tabId}`).classList.add('active');
+  document.getElementById(`panel-${tabId}`).classList.add('active');
+}
+
+/* -------------------------------------------------------------------
+   WORLD WORDS / SEARCH ENGINE
+-------------------------------------------------------------------- */
+async function executeWordSearch() {
+  const query = document.getElementById('wordSearchInput').value.trim();
+  if (!query) return;
+
+  const statusLine = document.getElementById('wordsStatusLine');
+  const container = document.getElementById('wordResultsContainer');
+
+  statusLine.innerText = `Searching definition for "${query}"…`;
+  container.innerHTML = '';
+
+  try {
+    const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(query)}`);
+    const data = res.ok ? await res.json() : null;
+
+    statusLine.innerText = `Query complete for "${query}".`;
+
+    let html = `<div class="card">
+      <div class="sectionLabel">${query.toUpperCase()}</div>`;
+
+    if (data && data[0]) {
+      const entry = data[0];
+      entry.meanings?.forEach(m => {
+        html += `<div style="margin-top:8px;">
+          <span style="color:var(--accent); font-weight:600; font-size:11px; font-family:'Fira Code',monospace;">[${m.partOfSpeech}]</span>
+          <div style="font-size:13px; margin-top:4px;">${m.definitions[0]?.definition || ''}</div>
+        </div>`;
+      });
+    } else {
+      html += `<div style="font-size:12px; color:var(--text-dim);">No direct dictionary definition found.</div>`;
+    }
+
+    html += `</div>`;
+    container.innerHTML = html;
+
+  } catch (err) {
+    statusLine.innerText = 'Error fetching search results.';
+  }
+}
+
+/* -------------------------------------------------------------------
+   EMBED CODE PLAYLIST MANAGEMENT
+-------------------------------------------------------------------- */
+function saveEmbedToPlaylist() {
+  const title = document.getElementById('embedTitleInput').value.trim() || 'Untitled Embed';
+  const snippet = document.getElementById('embedSnippetInput').value.trim();
+
+  if (!snippet) {
+    showToast('Please paste valid iframe code');
+    return;
+  }
+
+  const newEmbed = {
+    id: 'emb_' + Date.now(),
+    title,
+    snippet
+  };
+
+  embedPlaylist.unshift(newEmbed);
+  localStorage.setItem(STORAGE_KEYS.EMBEDS, JSON.stringify(embedPlaylist));
+  
+  document.getElementById('embedTitleInput').value = '';
+  document.getElementById('embedSnippetInput').value = '';
+
+  renderEmbedPlaylist();
+  loadEmbedToPlayer(newEmbed.id);
+  showToast('Embed added to playlist');
+}
+
+function renderEmbedPlaylist() {
+  const container = document.getElementById('embedPlaylistList');
+  if (!embedPlaylist.length) {
+    container.innerHTML = `<div style="font-size:11px; color:var(--text-dim); font-family:'Fira Code',monospace;">No embedded items saved in playlist.</div>`;
+    return;
+  }
+
+  container.innerHTML = embedPlaylist.map((item, idx) => `
+    <div class="trackItem" onclick="loadEmbedToPlayer('${item.id}')">
+      <span>${idx + 1}. ${escapeHtml(item.title)}</span>
+      <button class="ghost" style="padding:2px 6px; font-size:10px;" onclick="event.stopPropagation(); removeEmbed('${item.id}')">✕</button>
+    </div>
+  `).join('');
+}
+
+function loadEmbedToPlayer(id) {
+  const item = embedPlaylist.find(e => e.id === id);
+  if (!item) return;
+
+  const viewer = document.getElementById('embedViewer');
+  viewer.innerHTML = item.snippet;
+  showToast(`Loaded: ${item.title}`);
+}
+
+function removeEmbed(id) {
+  embedPlaylist = embedPlaylist.filter(e => e.id !== id);
+  localStorage.setItem(STORAGE_KEYS.EMBEDS, JSON.stringify(embedPlaylist));
+  renderEmbedPlaylist();
+}
+
+/* -------------------------------------------------------------------
+   NATIVE AUDIO & VISUALIZER ENGINE
+-------------------------------------------------------------------- */
+let audioCtx, analyserNode, audioElement;
+
+function handleAudioUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  if (!audioElement) audioElement = new Audio();
+  audioElement.src = URL.createObjectURL(file);
+  setupAudioContext();
+  audioElement.play();
+  document.getElementById('playBtn').innerText = 'Pause';
+}
+
+function setupAudioContext() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyserNode = audioCtx.createAnalyser();
+    analyserNode.fftSize = 128;
+    const source = audioCtx.createMediaElementSource(audioElement);
+    source.connect(analyserNode);
+    analyserNode.connect(audioCtx.destination);
+    renderVisualizer();
+  }
+}
+
+function togglePlay() {
+  if (!audioElement) return;
+  if (audioElement.paused) {
+    audioElement.play();
+    document.getElementById('playBtn').innerText = 'Pause';
+  } else {
+    audioElement.pause();
+    document.getElementById('playBtn').innerText = 'Play';
+  }
+}
+
+function stopAudio() {
+  if (!audioElement) return;
+  audioElement.pause();
+  audioElement.currentTime = 0;
+  document.getElementById('playBtn').innerText = 'Play';
+}
+
+function renderVisualizer() {
+  requestAnimationFrame(renderVisualizer);
+  if (!analyserNode) return;
+
+  const canvas = document.getElementById('audioCanvas');
+  const ctx = canvas.getContext('2d');
+  
+  if (canvas.width !== canvas.clientWidth) canvas.width = canvas.clientWidth;
+  if (canvas.height !== canvas.clientHeight) canvas.height = canvas.clientHeight;
+
+  const bufferLength = analyserNode.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+  analyserNode.getByteFrequencyData(dataArray);
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const barWidth = (canvas.width / bufferLength) * 2.5;
+  let x = 0;
+
+  for (let i = 0; i < bufferLength; i++) {
+    const barHeight = (dataArray[i] / 255) * canvas.height;
+    ctx.fillStyle = '#00f2ff';
+    ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+    x += barWidth + 1;
+  }
+}
+
+function addTimestampToNote() {
+  if (!audioElement) return;
+  const sec = audioElement.currentTime;
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  const timeStr = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+  
+  const textarea = document.getElementById('noteBodyInput');
+  textarea.value += `\n[${timeStr}] `;
+  switchTab('notes');
+  textarea.focus();
+}
+
+/* -------------------------------------------------------------------
+   NOTES VAULT
+-------------------------------------------------------------------- */
+function saveNote() {
+  const title = document.getElementById('noteTitleInput').value.trim() || 'Untitled Note';
+  const body = document.getElementById('noteBodyInput').value.trim();
+
+  if (!body) {
+    showToast('Cannot save an empty note');
+    return;
+  }
+
+  notesVault.unshift({
+    id: 'note_' + Date.now(),
+    title,
+    body,
+    updatedAt: new Date().toISOString()
+  });
+
+  localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notesVault));
+  document.getElementById('noteTitleInput').value = '';
+  document.getElementById('noteBodyInput').value = '';
+  renderNotes();
+  showToast('Note saved to vault');
+}
+
+function renderNotes() {
+  const container = document.getElementById('notesContainer');
+  if (!notesVault.length) {
+    container.innerHTML = `<div style="font-size:11px; color:var(--text-dim); font-family:'Fira Code',monospace;">No field notes stored.</div>`;
+    return;
+  }
+
+  container.innerHTML = notesVault.map(n => `
+    <div class="noteItem">
+      <div style="flex:1;">
+        <div class="noteTitle">${escapeHtml(n.title)}</div>
+        <div class="notePreview">${escapeHtml(n.body)}</div>
+      </div>
+      <button class="ghost" style="padding:2px 6px; font-size:10px;" onclick="deleteNote('${n.id}')">✕</button>
+    </div>
+  `).join('');
+}
+
+function deleteNote(id) {
+  notesVault = notesVault.filter(n => n.id !== id);
+  localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notesVault));
+  renderNotes();
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+</script>
+
+</body>
+</html>
