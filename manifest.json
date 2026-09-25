@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Crow Extension",
+  "version": "1.0",
+  "description": "Custom extension build.",
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": "icon.png"
+  },
+  "permissions": []
+}
