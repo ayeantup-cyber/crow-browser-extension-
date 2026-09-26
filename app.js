@@ -1,4 +1,3 @@
-```javascript
 // World Words Hub — Main Application
 //
 // All extension-page JavaScript lives here.
@@ -1238,4 +1237,3 @@ function escapeHtml(value) {
       "&#039;"
     );
 }
-```
