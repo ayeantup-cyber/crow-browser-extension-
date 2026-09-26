@@ -1,3 +1,4 @@
+```json
 {
   "manifest_version": 3,
   "name": "World Words Hub",
@@ -28,11 +29,13 @@
     }
   },
   "background": {
-    "scripts": ["sw.js"],
-    "service_worker": "sw.js"
+    "scripts": [
+      "sw.js"
+    ]
   },
   "icons": {
     "192": "icons/icon-192.png",
     "512": "icons/icon-512.png"
   }
 }
+```
