@@ -1,4 +1,3 @@
-```javascript
 // World Words Hub — Firefox MV3 Background Script
 
 const api = typeof browser !== "undefined" ? browser : chrome;
@@ -75,4 +74,3 @@ api.contextMenus.onClicked.addListener(async (info) => {
     );
   }
 });
-```
