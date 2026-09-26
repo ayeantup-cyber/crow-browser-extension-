@@ -1,11 +1,38 @@
 {
   "manifest_version": 3,
-  "name": "Crow Extension",
-  "version": "1.0",
-  "description": "Custom extension build.",
+  "name": "World Words Hub",
+  "short_name": "WordsHub",
+  "version": "1.0.0",
+  "description": "Pattern Stacking Engine — Decode Language. Find Patterns.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "wordshub@bytestar.aob",
+      "strict_min_version": "109.0"
+    }
+  },
+  "permissions": [
+    "storage",
+    "activeTab",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "https://api.datamuse.com/*",
+    "https://api.dictionaryapi.dev/*"
+  ],
   "action": {
     "default_popup": "index.html",
-    "default_icon": "icon.png"
+    "default_title": "World Words Hub",
+    "default_icon": {
+      "192": "icons/icon-192.png",
+      "512": "icons/icon-512.png"
+    }
   },
-  "permissions": []
+  "background": {
+    "scripts": ["sw.js"],
+    "service_worker": "sw.js"
+  },
+  "icons": {
+    "192": "icons/icon-192.png",
+    "512": "icons/icon-512.png"
+  }
 }
